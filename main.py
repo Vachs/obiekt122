@@ -5,7 +5,7 @@ import pylab
 import dendropy
 from cStringIO import StringIO
 from Bio.Nexus import Trees
-from PyQt4 import QtCore
+##from PyQt4 import QtCore
 from PyQt4 import QtGui
 from Bio import Phylo
 
@@ -433,10 +433,10 @@ class AsciiTreeWindow(QtGui.QWidget):
         self.setLayout(self.layout)
         
         #print tree
-        self.tmpf = open('./Tmp/ascii.txt', 'w')
+        self.tmpf = open('/tmp/ascii.txt', 'w')
         Phylo.draw_ascii(self.tree, self.tmpf)
         
-        self.tmpf = open('./Tmp/ascii.txt', 'r')
+        self.tmpf = open('/tmp/ascii.txt', 'r')
         with self.tmpf:        
                 self.data = self.tmpf.read()
                 self.textEdit.setText(self.data)
@@ -693,7 +693,7 @@ class MainWindow(QtGui.QMainWindow):
         
         if self.tree != 0:
             #self.tree.rooted = True
-            tree.root.color = '#808080'
+            self.tree.root.color = '#808080'
             Phylo.draw_graphviz(self.tree, node_size = 2500)
             pylab.show()
         
@@ -745,7 +745,6 @@ class MainWindow(QtGui.QMainWindow):
                                 
          
 def main():
-    
     app = QtGui.QApplication(sys.argv)
     mw = MainWindow()
     sys.exit(app.exec_())

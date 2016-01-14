@@ -1,0 +1,42 @@
+<phyloxml xmlns="http://www.phyloxml.org" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.phyloxml.org http://www.phyloxml.org/1.10/phyloxml.xsd">
+  <phylogeny rooted="false">
+    <clade>
+      <clade>
+        <branch_length>0.392293</branch_length>
+        <clade>
+          <name>t5</name>
+          <branch_length>2.161175</branch_length>
+        </clade>
+        <clade>
+          <name>t6</name>
+          <branch_length>0.161175</branch_length>
+        </clade>
+      </clade>
+      <clade>
+        <branch_length>0.383247</branch_length>
+        <clade>
+          <branch_length>0.06584</branch_length>
+          <clade>
+            <name>t4</name>
+            <branch_length>0.104381</branch_length>
+          </clade>
+          <clade>
+            <branch_length>1.0</branch_length>
+            <clade>
+              <name>t2</name>
+              <branch_length>0.075411</branch_length>
+            </clade>
+            <clade>
+              <name>t1</name>
+              <branch_length>0.075411</branch_length>
+            </clade>
+          </clade>
+        </clade>
+        <clade>
+          <name>t3</name>
+          <branch_length>0.170221</branch_length>
+        </clade>
+      </clade>
+    </clade>
+  </phylogeny>
+</phyloxml>
