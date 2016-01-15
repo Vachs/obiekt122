@@ -3,6 +3,7 @@ import sys
 import os
 import pylab
 import dendropy
+
 from dendropy.calculate import treecompare
 from cStringIO import StringIO
 from Bio.Nexus import Trees
@@ -88,6 +89,7 @@ class ConsensusWindow(QtGui.QWidget):
             
             #draw tree
             self.handle = StringIO(self.consensus_tree._as_newick_string())
+            # POPRAWIONY BLAD Z KONWERSJA DO BUFORA
 
             #self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
             self.tree = Phylo.read(self.handle, 'newick')
@@ -210,16 +212,30 @@ class DistancesWindow(QtGui.QWidget):
     def calculateDistance(self):
         if self.path1 != '' and self.path2 != '':
             #get files extensions
+
             self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
             self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
-            
+
             #open tree files
-            self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1)
-            self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2)
-            
+            tns = dendropy.TaxonNamespace()
+            self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1, taxon_namespace=tns)
+            self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2, taxon_namespace=tns)
+
+            self.tree1.encode_bipartitions()
+            self.tree2.encode_bipartitions()
+
+            print(treecompare.false_positives_and_negatives(self.tree1, self.tree2))
+
+            # self.tree1 = dendropy.Tree.get_from_string('((A, B), (C, D))', 'newick')
+            # self.tree2 = dendropy.Tree.get_from_string('((A, B), (C, D))', 'newick')
+
+            # self.tree1.encode_bipartitions()
+            #self.tree2.encode_bipartitions()
+
+
             #calculate distances
             #self.symDist = self.tree1.symmetric_difference(self.tree2)
-            #self.symDist = treecompare.symmetric_difference(self.tree1, self.tree2)
+            self.symDist = treecompare.symmetric_difference(self.tree1, self.tree2)
             self.fpnDist = treecompare.false_positives_and_negatives(self.tree1, self.tree2)
             self.eucDist = treecompare.euclidean_distance(self.tree1, self.tree2)
             self.rfDist  = treecompare.robinson_foulds_distance(self.tree1, self.tree2)
