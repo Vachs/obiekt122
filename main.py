@@ -87,7 +87,7 @@ class ConsensusWindow(QtGui.QWidget):
             self.consensus_tree = self.trees.consensus(min_freq=0.2)
             
             #draw tree
-            self.handle = StringIO(self.consensus_tree.as_newick_string())
+            self.handle = StringIO(self.consensus_tree._as_newick_string())
 
             #self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
             self.tree = Phylo.read(self.handle, 'newick')
@@ -193,7 +193,7 @@ class DistancesWindow(QtGui.QWidget):
         self.show()
         
     def showOpenFileDialog(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik', './Trees')
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik', '.newick')
         return str(fname)
     
     
@@ -241,6 +241,7 @@ class NodesWindow(QtGui.QWidget):
         self.initUI()
         
     def initUI(self):
+        self.items = { 'nothing':'' }
         #labels
         self.node1Label = QtGui.QLabel('Pierwszy wezel')
         self.node2Label = QtGui.QLabel('Drugi wezel')
@@ -248,15 +249,23 @@ class NodesWindow(QtGui.QWidget):
         #combo boxes
         self.node1ComboBox = QtGui.QComboBox(self)
         self.node2ComboBox = QtGui.QComboBox(self)
-        
+
+        # DODAJE PUSTY WEZEL
+        self.node1ComboBox.addItem('')
+        self.node2ComboBox.addItem('')
+
+
         for clade in self.terminals:
             self.node1ComboBox.addItem(clade.name)
             self.node2ComboBox.addItem(clade.name)
-        
+
+
         self.node1ComboBox.activated[str].connect(self.onActivatedCB1)
         self.node2ComboBox.activated[str].connect(self.onActivatedCB2)
-        
-        #button
+
+        #if self.node1ComboBox.activated[str].connect(self.onActivatedCB1) == '':
+        #    print '2'
+
         self.pathBtn = QtGui.QPushButton('Pokaz sciezke')
         self.pathBtn.clicked.connect(self.showPathWindow)
         
@@ -277,6 +286,7 @@ class NodesWindow(QtGui.QWidget):
         self.setGeometry(200, 200, 100, 50)
         self.setWindowTitle('Wybor wezlow')
         self.show()
+        #self.showPathWindow()
     
     
     def onActivatedCB1(self, text):
@@ -289,7 +299,7 @@ class NodesWindow(QtGui.QWidget):
         
     def showPathWindow(self):
         if self.cb1 != '' and self.cb2 != '':            
-            self.start = self.tree.find_clades(name = self.cb1).next()
+            self.start = self.tree.find_clades(self.cb1).next()
             self.end = self.tree.find_clades(name = self.cb2).next()
             
             for clade in self.tree.trace(self.start, self.end):
@@ -299,9 +309,48 @@ class NodesWindow(QtGui.QWidget):
                 if not(clade in self.tree.trace(self.start, self.end)):
                     clade.color = 'grey'
             
-            self.start.color = 'red'
-    
+            self.start.color = 'blue'
+
+            # RYSOWANIE
             Phylo.draw_graphviz(self.tree, node_size = 2500)
+            pylab.plot(0,0)
+
+            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
+            frame1 = pylab.gca()
+            for xlabel_i in frame1.axes.get_xticklabels():
+                xlabel_i.set_visible(False)
+                xlabel_i.set_fontsize(0.0)
+            for xlabel_i in frame1.axes.get_yticklabels():
+                xlabel_i.set_fontsize(0.0)
+                xlabel_i.set_visible(False)
+            for tick in frame1.axes.get_xticklines():
+                tick.set_visible(False)
+            for tick in frame1.axes.get_yticklines():
+                tick.set_visible(False)
+            pylab.show()
+
+        else:
+            print "Nie wybrano punktow"
+
+            # WYSWIETLA INFORMACJE
+            img = pylab.imread('wally.png', 'rb')
+            pylab.imshow(img)
+            pylab.plot(0,0)
+
+            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
+            frame1 = pylab.gca()
+            for xlabel_i in frame1.axes.get_xticklabels():
+                xlabel_i.set_visible(False)
+                xlabel_i.set_fontsize(0.0)
+            for xlabel_i in frame1.axes.get_yticklabels():
+                xlabel_i.set_fontsize(0.0)
+                xlabel_i.set_visible(False)
+            for tick in frame1.axes.get_xticklines():
+                tick.set_visible(False)
+            for tick in frame1.axes.get_yticklines():
+                tick.set_visible(False)
+
+            # SHOWTIME
             pylab.show()
 
 
