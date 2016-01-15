@@ -3,6 +3,7 @@ import sys
 import os
 import pylab
 import dendropy
+from dendropy.calculate import treecompare
 from cStringIO import StringIO
 from Bio.Nexus import Trees
 ##from PyQt4 import QtCore
@@ -87,6 +88,8 @@ class ConsensusWindow(QtGui.QWidget):
             
             #draw tree
             self.handle = StringIO(self.consensus_tree.as_newick_string())
+
+            #self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
             self.tree = Phylo.read(self.handle, 'newick')
             self.tree.root.color = '#808080'
             Phylo.draw(self.tree)
@@ -215,10 +218,11 @@ class DistancesWindow(QtGui.QWidget):
             self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2)
             
             #calculate distances
-            self.symDist = self.tree1.symmetric_difference(self.tree2)
-            self.fpnDist = self.tree1.false_positives_and_negatives(self.tree2)
-            self.eucDist = self.tree1.euclidean_distance(self.tree2)
-            self.rfDist = self.tree1.robinson_foulds_distance(self.tree2)
+            #self.symDist = self.tree1.symmetric_difference(self.tree2)
+            #self.symDist = treecompare.symmetric_difference(self.tree1, self.tree2)
+            self.fpnDist = treecompare.false_positives_and_negatives(self.tree1, self.tree2)
+            self.eucDist = treecompare.euclidean_distance(self.tree1, self.tree2)
+            self.rfDist  = treecompare.robinson_foulds_distance(self.tree1, self.tree2)
             
             #show distances
             self.dist1Value.setText(str(self.eucDist))
@@ -686,7 +690,7 @@ class MainWindow(QtGui.QMainWindow):
             self.tree.root.color = '#808080'
             Phylo.draw(self.tree, branch_labels = lambda c: c.branch_length)
             
-            
+    ## showGraphvizUnRootedTreeWindow
     def showGraphvizRootedTreeWindow(self):
         if self.chosenFileName == '':
             self.showOpenFileDialog()
