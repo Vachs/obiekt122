@@ -193,6 +193,7 @@ class NextWindow(QtGui.QWidget):
         self.initUI()
 
     def initUI(self):
+        self.showOpenFileDialog()
 
         # buttony
         self.info = QtGui.QLabel('Kalkulator drzew filogenicznych. Mozliwosc wczytania zarowno drzew ukorzenionych\n'
@@ -202,8 +203,13 @@ class NextWindow(QtGui.QWidget):
         self.btn1 = QtGui.QPushButton('Uzyskaj informacje o drzewie')
         self.btn1.clicked.connect(self.OpenInfoWindow)
 
-        self.lay2 = QtGui.QLabel('')
-        self.btn2 = QtGui.QPushButton('Wybierz drugie drzewo')
+        self.lay2 = QtGui.QLabel('Pozwala na prosta wizualizacje drzewa')
+        self.btn2 = QtGui.QPushButton('Rysuj drzewo')
+        self.btn2.clicked.connect(self.DrawSimple)
+        self.btn22= QtGui.QPushButton('Bardziej zaawansowane z wartosciami')
+        self.btn22.clicked.connect(self.DrawAdvan)
+
+
         #self.path2Btn.clicked.connect(self.chooseFile2)
 
         self.consDenBtn = QtGui.QPushButton('Wygeneruj drzewo konsensusu (dendropy)')
@@ -215,18 +221,23 @@ class NextWindow(QtGui.QWidget):
         self.consNexBtn2 = QtGui.QPushButton('Wygeneruj drzewo konsensusu (Bio.Nexus)')
         #self.consNexBtn2.clicked.connect(self.drawUnRoot)
 
-
+        self.anotherTree = QtGui.QPushButton('Wczytaj inne drzewo')
+        self.anotherTree.clicked.connect(self.showOpenFileDialog)
 
         # obraz
         self.grid = QtGui.QGridLayout(self)
         self.grid.setSpacing(10)
 
         self.grid.addWidget(self.info, 1, 0)
-        self.grid.addWidget(self.lay1, 2, 0)
-        self.grid.addWidget(self.btn1, 3, 0)
+        self.grid.addWidget(self.lay1, 3, 0)
+        self.grid.addWidget(self.btn1, 4, 0)
 
-        self.grid.addWidget(self.lay2, 4, 0)
-        self.grid.addWidget(self.btn2, 5, 0)
+        self.grid.addWidget(self.lay2, 6, 0)
+        self.grid.addWidget(self.btn2, 7, 0)
+        self.grid.addWidget(self.btn22,8, 0)
+
+
+        self.grid.addWidget(self.anotherTree,10,0)
 
         #self.grid.addWidget(self.consDenBtn, 3, 0)
         #self.grid.addWidget(self.consNexBtn, 3, 1)
@@ -237,8 +248,9 @@ class NextWindow(QtGui.QWidget):
         self.setWindowTitle('Menu')
         self.show()
 
+
     def showOpenFileDialog(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik', './Trees')
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik zawierajacy drzewo', './Trees')
         if fname != '':
             self.chosenFileName = str(fname)
             f = open(str(fname), 'r')
@@ -259,6 +271,24 @@ class NextWindow(QtGui.QWidget):
             self.infoWin = InfoWindow(self.tree)
             self.infoWin.show()
 
+    # RYSUJE PODSTAWOWY GRAF
+    def DrawSimple(self):
+        if self.chosenFileName == '':
+            self.showOpenFileDialog()
+
+        if self.tree != 0:
+            self.tree.root.color = '#808080'
+            Phylo.draw_graphviz(self.tree, node_size = 2500)
+            pylab.show()
+
+    # RYSUJE BARDZIEJ ZAAWANSOWANY WYKRES
+    def DrawAdvan(self):
+        if self.chosenFileName == '':
+            self.showOpenFileDialog()
+
+        if self.tree != 0:
+            self.tree.root.color = '#808080'
+            Phylo.draw(self.tree, branch_labels = lambda c: c.branch_length)
 
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 class NextWindow_copy(QtGui.QWidget):
@@ -270,6 +300,7 @@ class NextWindow_copy(QtGui.QWidget):
         self.path1 = ''
         self.path2 = ''
         self.initUI()
+
 
     def initUI(self):
 
@@ -293,6 +324,7 @@ class NextWindow_copy(QtGui.QWidget):
         self.consNexBtn2 = QtGui.QPushButton('Wygeneruj drzewo konsensusu (Bio.Nexus)')
         #self.consNexBtn2.clicked.connect(self.drawUnRoot)
 
+
         # obraz
         self.grid = QtGui.QGridLayout(self)
         self.grid.setSpacing(10)
@@ -306,6 +338,8 @@ class NextWindow_copy(QtGui.QWidget):
         self.grid.addWidget(self.consDenBtn, 3, 0)
         self.grid.addWidget(self.consNexBtn, 3, 1)
         self.grid.addWidget(self.consNexBtn2, 3, 2)
+
+
 
         self.setLayout(self.grid)
         self.setGeometry(200, 200, 200, 50)
@@ -675,12 +709,23 @@ class NodesWindow(QtGui.QWidget):
 
 
 class InfoWindow(QtGui.QMainWindow):
-    text = 'Informacje o drzwie:'
+
 
     def __init__(self, tree):
         super(InfoWindow, self).__init__()
         self.tree = tree
+        self.textt = 'Information about tree' + "\n" + str(tree)
         self.initUI()
+
+    def showAscii(self):
+        # print tree
+        self.tmpf = open('/tmp/ascii.txt', 'w')
+        Phylo.draw_ascii(self.tree, self.tmpf)
+
+        self.tmpf = open('/tmp/ascii.txt', 'r')
+        with self.tmpf:
+            self.textt += "\n" + self.tmpf.read()
+
 
     def initUI(self):
         self.getMinMaxDepths()
@@ -690,91 +735,37 @@ class InfoWindow(QtGui.QMainWindow):
 
         self.isBifurcating = ''
         if self.tree.is_bifurcating():
-            self.isBifurcating = 'tak'
+            self.isBifurcating = 'Yes'
         else:
-            self.isBifurcating = 'nie'
-
-        # labels
-        self.nodesLabel = QtGui.QLabel('Liczba wezlow w drzewie')
-        self.nodesValue = QtGui.QLabel(str(self.numberOfTermianls + self.numberOfNonterminals))
-
-        self.leafsLabel = QtGui.QLabel('Liczba lisci w drzewie')
-        self.leafsValue = QtGui.QLabel(str(self.numberOfTermianls))
-
-        self.nonleafsLabel = QtGui.QLabel('Liczba wezlow niebedacych lisciami')
-        self.nonleafsValue = QtGui.QLabel(str(self.numberOfNonterminals))
-
-        self.minDepthLabel = QtGui.QLabel('Najmniejsza glebokosc')
-        self.minDepthValue = QtGui.QLabel(str(self.minDepth))
-
-        self.maxDepthLabel = QtGui.QLabel('Najwieksza glebokosc')
-        self.maxDepthValue = QtGui.QLabel(str(self.maxDepth))
-
-        self.minLengthLabel = QtGui.QLabel('Najmniejsza odleglosc od korzenia do liscia')
-        self.minLengthValue = QtGui.QLabel(str(self.minLength))
-
-        self.maxLengthLabel = QtGui.QLabel('Najwieksza odleglosc od korzenia do liscia')
-        self.maxLengthValue = QtGui.QLabel(str(self.maxLength))
-
-        self.totalLengthLabel = QtGui.QLabel('Laczna dlugosc galezi w drzewie')
-        self.totalLengthValue = QtGui.QLabel(str(self.tree.total_branch_length()))
-
-        self.bifurcatingLabel = QtGui.QLabel('Drzewo scisle dwudzielne')
-        self.bifurcatingValue = QtGui.QLabel(self.isBifurcating)
-
-        # window layout
-        #self.grid = QtGui.QGridLayout(self)
-        #self.grid.setSpacing(10)
-
-        #self.grid.addWidget(self.nodesLabel, 1, 0)
-        #self.grid.addWidget(self.nodesValue, 1, 1)
-
-        #self.grid.addWidget(self.leafsLabel, 2, 0)
-        #self.grid.addWidget(self.leafsValue, 2, 1)
-
-        #self.grid.addWidget(self.nonleafsLabel, 3, 0)
-        #self.grid.addWidget(self.nonleafsValue, 3, 1)
-
-        #self.grid.addWidget(self.maxDepthLabel, 4, 0)
-        #self.grid.addWidget(self.maxDepthValue, 4, 1)
-
-        #self.grid.addWidget(self.minDepthLabel, 5, 0)
-        #self.grid.addWidget(self.minDepthValue, 5, 1)
-
-        #self.grid.addWidget(self.maxLengthLabel, 6, 0)
-        #self.grid.addWidget(self.maxLengthValue, 6, 1)
-
-        #self.grid.addWidget(self.minLengthLabel, 7, 0)
-        #self.grid.addWidget(self.minLengthValue, 7, 1)
-
-        #self.grid.addWidget(self.totalLengthLabel, 8, 0)
-        #self.grid.addWidget(self.totalLengthValue, 8, 1)
-
-        #self.grid.addWidget(self.bifurcatingLabel, 9, 0)
-        #self.grid.addWidget(self.bifurcatingValue, 9, 1)
+            self.isBifurcating = 'No :<'
 
         self.textEdit = QtGui.QTextEdit()
         self.textEdit.setReadOnly(True)
         self.textEdit.setFontFamily('Courier')
         self.textEdit.setWordWrapMode(True)
 
-
-        self.textEdit.setText(self.text)
+        #self.makeStringInfo()
+        self.textEdit.setText(self.textt)
         self.setCentralWidget(self.textEdit)
+
+
+        # labels
         self.showAscii()
+        self.textt += '\nNumber of terminals and non-terminals: ' + str(self.numberOfTermianls + self.numberOfNonterminals)
+        self.textt += '\nNumber of terminals: ' + str(self.numberOfTermianls)
+        self.textt += '\nNumber of non-terminals: ' + str(self.numberOfNonterminals)
+        self.textt += '\nMin depth: ' + str(self.minDepth)
+        self.textt += '\nMax depth: ' + str(self.maxDepth)
+        self.textt += '\nMin length: ' + str(self.minLength)
+        self.textt += '\nMax length: ' + str(self.maxLength)
+        self.textt += '\nTotal branch length: ' + str(self.tree.total_branch_length())
+        self.textt += '\nIs tree is bifurcanting: ' + self.isBifurcating
+
+        self.textEdit.setText(self.textt)
         self.setGeometry(200, 200, 800, 800)
-        self.setWindowTitle('Informacje')
+        self.setWindowTitle('Information')
         self.show()
 
-    def showAscii(self):
-        # print tree
-        self.tmpf = open('/tmp/ascii.txt', 'w')
-        Phylo.draw_ascii(self.tree, self.tmpf)
-
-        self.tmpf = open('/tmp/ascii.txt', 'r')
-        with self.tmpf:
-            self.text += "\n" + self.tmpf.read()
-            self.textEdit.setText(self.text)
 
 
     def getMinMaxDepths(self):
