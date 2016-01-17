@@ -1,0 +1,55 @@
+    # def drawConsensusTreeDendropy(self):
+    #     if self.path1 != '' and self.path2 != '':
+    #         # get files extensions
+    #         self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
+    #         self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
+    #
+    #         # open tree files
+    #         self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1)
+    #         self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2)
+    #
+    #         # prepare tree list
+    #         self.trees = dendropy.TreeList()
+    #         self.trees.append(self.tree1)
+    #         self.trees.append(self.tree2)
+    #
+    #         # generate consensus tree
+    #         self.consensus_tree = self.trees.consensus(min_freq=0.2)
+    #
+    #         # draw tree
+    #         self.handle = StringIO(self.consensus_tree._as_newick_string())
+    #         # POPRAWIONY BLAD Z KONWERSJA DO BUFORA
+    #
+    #         # self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
+    #         self.tree = Phylo.read(self.handle, 'newick')
+    #         #self.OpenInfoWindow() #otwieralo okno informacyjne
+    #         self.tree.root.color = '#808080'
+    #         Phylo.draw(self.tree)
+
+
+    # def showConsensusTreeBioNexus(self):
+    #     if self.path1 != '' and self.path2 != '':
+    #         # get files extensions
+    #         self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
+    #         self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
+    #
+    #         # open tree files
+    #         self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1)
+    #         self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2)
+    #
+    #         # prepare tree list
+    #         self.trees = dendropy.TreeList()
+    #         self.trees.append(self.tree1)
+    #         self.trees.append(self.tree2)
+    #
+    #         # generate consensus tree
+    #         self.consensus_tree = self.trees.consensus(min_freq=0.2)
+    #
+    #         # draw tree
+    #         self.handle = StringIO(self.consensus_tree._as_newick_string())
+    #         # POPRAWIONY BLAD Z KONWERSJA DO BUFORA
+    #
+    #         self.tree = Phylo.read(self.handle, 'newick')
+    #         self.OpenInfoWindow()
+    #         #self.tree.root.color = '#808080'
+    #         #Phylo.draw(self.tree)
