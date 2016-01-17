@@ -185,15 +185,47 @@ class ConsensusWindow(QtGui.QWidget):
 class NextWindow(QtGui.QWidget):
     chosenFileName = ''
     tree = 0
+    path1 = ''
 
     def __init__(self):
         super(NextWindow, self).__init__()
         self.path1 = ''
         self.path2 = ''
+        #self.tree = tree
+        #self.terminals = tree.get_terminals()
+        self.cb1 = ''
+        self.cb2 = ''
         self.initUI()
 
     def initUI(self):
         self.showOpenFileDialog()
+
+
+        # WYSZUIKWANIE DROGI PO KRAWEDZIACH
+        # labels
+        self.node1Label = QtGui.QLabel('Pierwszy wezel')
+        self.node2Label = QtGui.QLabel('Drugi wezel')
+
+        # combo boxes
+        self.node1ComboBox = QtGui.QComboBox(self)
+        self.node2ComboBox = QtGui.QComboBox(self)
+
+        # DODAJE PUSTY WEZEL
+        self.node1ComboBox.addItem('')
+        self.node2ComboBox.addItem('')
+
+        for clade in self.terminals:
+            self.node1ComboBox.addItem(clade.name)
+            self.node2ComboBox.addItem(clade.name)
+
+        self.node1ComboBox.activated[str].connect(self.onActivatedCB1)
+        self.node2ComboBox.activated[str].connect(self.onActivatedCB2)
+
+        self.node1ComboBox.activated[str].connect(self.onActivatedCB1)
+        self.node2ComboBox.activated[str].connect(self.onActivatedCB2)
+
+        self.pathBtn = QtGui.QPushButton('wyznacz')
+        self.pathBtn.clicked.connect(self.showPathWindow)
 
         # buttony
         self.info = QtGui.QLabel('Kalkulator drzew filogenicznych. Mozliwosc wczytania zarowno drzew ukorzenionych\n'
@@ -201,6 +233,8 @@ class NextWindow(QtGui.QWidget):
 
         self.lay1 = QtGui.QLabel('Pozwala uzyskac podstawowe informacje o wybranych drzewie')
         self.btn1 = QtGui.QPushButton('Uzyskaj informacje o drzewie')
+        #self.btn1.whatsThis()
+        #self.btn1.setWhatsThis('sadsa')
         self.btn1.clicked.connect(self.OpenInfoWindow)
 
         self.lay2 = QtGui.QLabel('Pozwala na prosta wizualizacje drzewa')
@@ -208,6 +242,10 @@ class NextWindow(QtGui.QWidget):
         self.btn2.clicked.connect(self.DrawSimple)
         self.btn22= QtGui.QPushButton('Bardziej zaawansowane z wartosciami')
         self.btn22.clicked.connect(self.DrawAdvan)
+
+        self.lay3 = QtGui.QLabel('Pozwala na wyznaczenie najkrotszej trasy pomiedzy dwoma liscmi')
+        self.btn3 = QtGui.QPushButton('Wyznacz trase')
+
 
 
         #self.path2Btn.clicked.connect(self.chooseFile2)
@@ -221,6 +259,8 @@ class NextWindow(QtGui.QWidget):
         self.consNexBtn2 = QtGui.QPushButton('Wygeneruj drzewo konsensusu (Bio.Nexus)')
         #self.consNexBtn2.clicked.connect(self.drawUnRoot)
 
+
+
         self.anotherTree = QtGui.QPushButton('Wczytaj inne drzewo')
         self.anotherTree.clicked.connect(self.showOpenFileDialog)
 
@@ -228,16 +268,26 @@ class NextWindow(QtGui.QWidget):
         self.grid = QtGui.QGridLayout(self)
         self.grid.setSpacing(10)
 
-        self.grid.addWidget(self.info, 1, 0)
-        self.grid.addWidget(self.lay1, 3, 0)
-        self.grid.addWidget(self.btn1, 4, 0)
+        self.grid.addWidget(self.info)
+        self.grid.addWidget(self.anotherTree, 2, 0)
+        #self.grid.addWidget(self.pathInfo, 3, 0)
+        self.grid.addWidget(self.lay1, 4, 0)
+        self.grid.addWidget(self.btn1, 5, 0)
 
         self.grid.addWidget(self.lay2, 6, 0)
         self.grid.addWidget(self.btn2, 7, 0)
         self.grid.addWidget(self.btn22,8, 0)
 
+        self.grid.addWidget(self.lay3, 9, 0)
+        self.grid.addWidget(self.node1Label, 9, 1)
+        self.grid.addWidget(self.node2Label, 9, 2)
+        self.grid.addWidget(self.pathBtn, 10, 0)
+        self.grid.addWidget(self.node1ComboBox, 10, 1)
+        self.grid.addWidget(self.node2ComboBox, 10, 2)
 
-        self.grid.addWidget(self.anotherTree,10,0)
+
+
+
 
         #self.grid.addWidget(self.consDenBtn, 3, 0)
         #self.grid.addWidget(self.consNexBtn, 3, 1)
@@ -255,13 +305,14 @@ class NextWindow(QtGui.QWidget):
             self.chosenFileName = str(fname)
             f = open(str(fname), 'r')
 
-            with f:
-                data = f.read()
-                #self.textEdit.setText(data)
+            #with f:
+                #path1 = f.read()
+                #self.pathInfo.setText(path1)
 
             self.fileExtension = (os.path.splitext(str(fname))[1])[1:]
-
             self.tree = Phylo.read(str(fname), self.fileExtension)
+            self.tree1s = self.tree
+            self.terminals = self.tree1s.get_terminals()
 
     def OpenInfoWindow(self):
         if self.chosenFileName == '':
@@ -290,73 +341,69 @@ class NextWindow(QtGui.QWidget):
             self.tree.root.color = '#808080'
             Phylo.draw(self.tree, branch_labels = lambda c: c.branch_length)
 
-#$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-class NextWindow_copy(QtGui.QWidget):
-    chosenFileName = ''
-    tree = 0
 
-    def __init__(self):
-        super(NextWindow, self).__init__()
-        self.path1 = ''
-        self.path2 = ''
-        self.initUI()
+    def onActivatedCB1(self, text):
+        self.cb1 = str(text)
 
+    def onActivatedCB2(self, text):
+        self.cb2 = str(text)
 
-    def initUI(self):
+    def showPathWindow(self):
+        if self.cb1 != '' and self.cb2 != '':
+            self.start = self.tree.find_clades(self.cb1).next()
+            self.end = self.tree.find_clades(name=self.cb2).next()
 
-        # sciezki
-        self.path1Label = QtGui.QLabel(self.path1)
-        self.path2Label = QtGui.QLabel(self.path2)
+            for clade in self.tree.trace(self.start, self.end):
+                clade.color = 'red'
 
-        # buttony
-        self.btn1 = QtGui.QPushButton('Wybierz pierwsze drzewo')
-        #self.path1Btn.clicked.connect(self.chooseFile1)
+            for clade in self.tree.find_clades():
+                if not (clade in self.tree.trace(self.start, self.end)):
+                    clade.color = 'grey'
 
-        self.btn2 = QtGui.QPushButton('Wybierz drugie drzewo')
-        #self.path2Btn.clicked.connect(self.chooseFile2)
-
-        self.consDenBtn = QtGui.QPushButton('Wygeneruj drzewo konsensusu (dendropy)')
-        #self.consDenBtn.clicked.connect(self.drawConsensusTreeDendropy)
-
-        self.consNexBtn = QtGui.QPushButton('Wygeneruj drzewo konsensusu (Bio.Nexus)')
-        #self.consNexBtn.clicked.connect(self.drawConsensusTreeBioNexus)
-
-        self.consNexBtn2 = QtGui.QPushButton('Wygeneruj drzewo konsensusu (Bio.Nexus)')
-        #self.consNexBtn2.clicked.connect(self.drawUnRoot)
+            self.start.color = 'blue'
 
 
-        # obraz
-        self.grid = QtGui.QGridLayout(self)
-        self.grid.setSpacing(10)
+            # RYSOWANIE
+            Phylo.draw_graphviz(self.tree, node_size=2500)
+            pylab.plot(0, 0)
 
-        self.grid.addWidget(self.path1Label, 1, 0)
-        self.grid.addWidget(self.btn1, 1, 1)
+            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
+            frame1 = pylab.gca()
+            for xlabel_i in frame1.axes.get_xticklabels():
+                xlabel_i.set_visible(False)
+                xlabel_i.set_fontsize(0.0)
+            for xlabel_i in frame1.axes.get_yticklabels():
+                xlabel_i.set_fontsize(0.0)
+                xlabel_i.set_visible(False)
+            for tick in frame1.axes.get_xticklines():
+                tick.set_visible(False)
+            for tick in frame1.axes.get_yticklines():
+                tick.set_visible(False)
+            pylab.show()
 
-        self.grid.addWidget(self.path2Label, 2, 0)
-        self.grid.addWidget(self.btn2, 2, 1)
+        else:
+            print "Nie wybrano punktow"
 
-        self.grid.addWidget(self.consDenBtn, 3, 0)
-        self.grid.addWidget(self.consNexBtn, 3, 1)
-        self.grid.addWidget(self.consNexBtn2, 3, 2)
+            # WYSWIETLA INFORMACJE
+            img = pylab.imread('wally.png', 'rb')
+            pylab.imshow(img)
+            pylab.plot(0, 0)
 
+            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
+            frame1 = pylab.gca()
+            for xlabel_i in frame1.axes.get_xticklabels():
+                xlabel_i.set_visible(False)
+                xlabel_i.set_fontsize(0.0)
+            for xlabel_i in frame1.axes.get_yticklabels():
+                xlabel_i.set_fontsize(0.0)
+                xlabel_i.set_visible(False)
+            for tick in frame1.axes.get_xticklines():
+                tick.set_visible(False)
+            for tick in frame1.axes.get_yticklines():
+                tick.set_visible(False)
 
-
-        self.setLayout(self.grid)
-        self.setGeometry(200, 200, 200, 50)
-        self.setWindowTitle('Drzewa konsensusu')
-        self.show()
-
-    def showOpenFileDialog(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik', './Trees')
-        return str(fname)
-
-    def chooseFile1(self):
-        self.path1 = self.showOpenFileDialog()
-        self.path1Label.setText(self.path1)
-
-    def chooseFile2(self):
-        self.path2 = self.showOpenFileDialog()
-        self.path2Label.setText(self.path2)
+            # SHOWTIME
+            pylab.show()
 
 
 
@@ -473,244 +520,8 @@ class DistancesWindow(QtGui.QWidget):
             self.dist4Value.setText(str(self.fpnDist))
 
 
-class NodesWindow_OLDS(QtGui.QWidget):
-    def __init__(self, tree):
-        super(NodesWindow, self).__init__()
-        self.tree = tree
-        self.terminals = tree.get_terminals()
-        self.cb1 = ''
-        self.cb2 = ''
-        self.initUI()
-
-    def initUI(self):
-        self.items = {'nothing': ''}
-        # labels
-        self.node1Label = QtGui.QLabel('Pierwszy wezel')
-        self.node2Label = QtGui.QLabel('Drugi wezel')
-
-        # combo boxes
-        self.node1ComboBox = QtGui.QComboBox(self)
-        self.node2ComboBox = QtGui.QComboBox(self)
-
-        # DODAJE PUSTY WEZEL
-        self.node1ComboBox.addItem('')
-        self.node2ComboBox.addItem('')
-
-        for clade in self.terminals:
-            self.node1ComboBox.addItem(clade.name)
-            self.node2ComboBox.addItem(clade.name)
-
-        self.node1ComboBox.activated[str].connect(self.onActivatedCB1)
-        self.node2ComboBox.activated[str].connect(self.onActivatedCB2)
-
-        # if self.node1ComboBox.activated[str].connect(self.onActivatedCB1) == '':
-        #    print '2'
-
-        self.pathBtn = QtGui.QPushButton('Pokaz sciezke')
-        self.pathBtn.clicked.connect(self.showPathWindow)
-
-        # window layout
-        self.grid = QtGui.QGridLayout(self)
-        self.grid.setSpacing(10)
-
-        self.grid.addWidget(self.node1Label, 1, 0)
-        self.grid.addWidget(self.node2Label, 1, 1)
-
-        self.grid.addWidget(self.node1ComboBox, 2, 0)
-        self.grid.addWidget(self.node2ComboBox, 2, 1)
-
-        self.grid.addWidget(self.pathBtn, 3, 1)
-
-        self.setLayout(self.grid)
-        self.setGeometry(200, 200, 100, 50)
-        self.setWindowTitle('Wybor wezlow')
-        self.show()
-        # self.showPathWindow()
-
-    def onActivatedCB1(self, text):
-        self.cb1 = str(text)
-
-    def onActivatedCB2(self, text):
-        self.cb2 = str(text)
-
-    def showPathWindow(self):
-        if self.cb1 != '' and self.cb2 != '':
-            self.start = self.tree.find_clades(self.cb1).next()
-            self.end = self.tree.find_clades(name=self.cb2).next()
-
-            for clade in self.tree.trace(self.start, self.end):
-                clade.color = 'red'
-
-            for clade in self.tree.find_clades():
-                if not (clade in self.tree.trace(self.start, self.end)):
-                    clade.color = 'grey'
-
-            self.start.color = 'blue'
-
-            # RYSOWANIE
-            Phylo.draw_graphviz(self.tree, node_size=2500)
-            pylab.plot(0, 0)
-
-            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
-            frame1 = pylab.gca()
-            for xlabel_i in frame1.axes.get_xticklabels():
-                xlabel_i.set_visible(False)
-                xlabel_i.set_fontsize(0.0)
-            for xlabel_i in frame1.axes.get_yticklabels():
-                xlabel_i.set_fontsize(0.0)
-                xlabel_i.set_visible(False)
-            for tick in frame1.axes.get_xticklines():
-                tick.set_visible(False)
-            for tick in frame1.axes.get_yticklines():
-                tick.set_visible(False)
-            pylab.show()
-
-        else:
-            print "Nie wybrano punktow"
-
-            # WYSWIETLA INFORMACJE
-            img = pylab.imread('wally.png', 'rb')
-            pylab.imshow(img)
-            pylab.plot(0, 0)
-
-            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
-            frame1 = pylab.gca()
-            for xlabel_i in frame1.axes.get_xticklabels():
-                xlabel_i.set_visible(False)
-                xlabel_i.set_fontsize(0.0)
-            for xlabel_i in frame1.axes.get_yticklabels():
-                xlabel_i.set_fontsize(0.0)
-                xlabel_i.set_visible(False)
-            for tick in frame1.axes.get_xticklines():
-                tick.set_visible(False)
-            for tick in frame1.axes.get_yticklines():
-                tick.set_visible(False)
-
-            # SHOWTIME
-            pylab.show()
-
-
-# USUWANIE KRAWDZI
-class NodesWindow(QtGui.QWidget):
-    def __init__(self, tree):
-        super(NodesWindow, self).__init__()
-        self.tree = tree
-        self.terminals = tree.get_terminals()
-        self.cb1 = ''
-        self.cb2 = ''
-        self.initUI()
-
-    def initUI(self):
-        self.items = {'nothing': ''}
-        # labels
-        self.node1Label = QtGui.QLabel('Pierwszy wezel')
-        self.node2Label = QtGui.QLabel('Drugi wezel')
-
-        # combo boxes
-        self.node1ComboBox = QtGui.QComboBox(self)
-        self.node2ComboBox = QtGui.QComboBox(self)
-
-        # DODAJE PUSTY WEZEL
-        self.node1ComboBox.addItem('')
-        self.node2ComboBox.addItem('')
-
-        for clade in self.terminals:
-            self.node1ComboBox.addItem(clade.name)
-            self.node2ComboBox.addItem(clade.name)
-
-        self.node1ComboBox.activated[str].connect(self.onActivatedCB1)
-        self.node2ComboBox.activated[str].connect(self.onActivatedCB2)
-
-        # if self.node1ComboBox.activated[str].connect(self.onActivatedCB1) == '':
-        #    print '2'
-
-        self.pathBtn = QtGui.QPushButton('Pokaz sciezke')
-        self.pathBtn.clicked.connect(self.showPathWindow)
-
-        # window layout
-        self.grid = QtGui.QGridLayout(self)
-        self.grid.setSpacing(10)
-
-        self.grid.addWidget(self.node1Label, 1, 0)
-        self.grid.addWidget(self.node2Label, 1, 1)
-
-        self.grid.addWidget(self.node1ComboBox, 2, 0)
-        self.grid.addWidget(self.node2ComboBox, 2, 1)
-
-        self.grid.addWidget(self.pathBtn, 3, 1)
-
-        self.setLayout(self.grid)
-        self.setGeometry(200, 200, 100, 50)
-        self.setWindowTitle('Wybor wezlow')
-        self.show()
-        # self.showPathWindow()
-
-    def onActivatedCB1(self, text):
-        self.cb1 = str(text)
-
-    def onActivatedCB2(self, text):
-        self.cb2 = str(text)
-
-    def showPathWindow(self):
-        if self.cb1 != '' and self.cb2 != '':
-            self.start = self.tree.find_clades(self.cb1).next()
-            self.end = self.tree.find_clades(name=self.cb2).next()
-
-            for clade in self.tree.trace(self.start, self.end):
-                clade.color = 'red'
-
-            for clade in self.tree.find_clades():
-                if not (clade in self.tree.trace(self.start, self.end)):
-                    clade.color = 'grey'
-
-            self.start.color = 'blue'
-
-            # RYSOWANIE
-            Phylo.draw_graphviz(self.tree, node_size=2500)
-            pylab.plot(0, 0)
-
-            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
-            frame1 = pylab.gca()
-            for xlabel_i in frame1.axes.get_xticklabels():
-                xlabel_i.set_visible(False)
-                xlabel_i.set_fontsize(0.0)
-            for xlabel_i in frame1.axes.get_yticklabels():
-                xlabel_i.set_fontsize(0.0)
-                xlabel_i.set_visible(False)
-            for tick in frame1.axes.get_xticklines():
-                tick.set_visible(False)
-            for tick in frame1.axes.get_yticklines():
-                tick.set_visible(False)
-            pylab.show()
-
-        else:
-            print "Nie wybrano punktow"
-
-            # WYSWIETLA INFORMACJE
-            img = pylab.imread('wally.png', 'rb')
-            pylab.imshow(img)
-            pylab.plot(0, 0)
-
-            # DAJE CZYSTY OBRAZ BEZ OSI ** PEWNIE MOZNA PROSCIEJ
-            frame1 = pylab.gca()
-            for xlabel_i in frame1.axes.get_xticklabels():
-                xlabel_i.set_visible(False)
-                xlabel_i.set_fontsize(0.0)
-            for xlabel_i in frame1.axes.get_yticklabels():
-                xlabel_i.set_fontsize(0.0)
-                xlabel_i.set_visible(False)
-            for tick in frame1.axes.get_xticklines():
-                tick.set_visible(False)
-            for tick in frame1.axes.get_yticklines():
-                tick.set_visible(False)
-
-            # SHOWTIME
-            pylab.show()
-
 
 class InfoWindow(QtGui.QMainWindow):
-
-
     def __init__(self, tree):
         super(InfoWindow, self).__init__()
         self.tree = tree
@@ -766,8 +577,6 @@ class InfoWindow(QtGui.QMainWindow):
         self.setWindowTitle('Information')
         self.show()
 
-
-
     def getMinMaxDepths(self):
         self.minDepth = -1
         self.maxDepth = -1
@@ -792,203 +601,6 @@ class InfoWindow(QtGui.QMainWindow):
                 if self.currentLength > self.maxLength or self.maxLength == -1.0:
                     self.maxLength = self.currentLength
 
-
-class AsciiTreeWindow(QtGui.QWidget):
-    tree = 0
-
-    def __init__(self, tree):
-        super(AsciiTreeWindow, self).__init__()
-        self.tree = tree
-        self.initUI()
-
-    def initUI(self):
-        # field for drawing Ascii tree
-        self.textEdit = QtGui.QTextEdit()
-        self.textEdit.setReadOnly(True)
-        self.textEdit.setFontFamily('Courier')
-        self.textEdit.setWordWrapMode(True)
-        # self.textEdit.setStyleSheet('')
-
-        # layout
-        self.layout = QtGui.QVBoxLayout(self)
-        self.layout.addWidget(self.textEdit)
-        self.setLayout(self.layout)
-
-        # print tree
-        self.tmpf = open('/tmp/ascii.txt', 'w')
-        Phylo.draw_ascii(self.tree, self.tmpf)
-
-        self.tmpf = open('/tmp/ascii.txt', 'r')
-        with self.tmpf:
-            self.data = self.tmpf.read()
-            self.textEdit.setText(self.data)
-
-        self.setGeometry(200, 200, 700, 400)
-        self.setWindowTitle('Tekstowe wyswietlanie')
-
-        self.show()
-        self.textEdit.setText("hej")
-
-
-# Glowne okno
-class MainWindow(QtGui.QMainWindow):
-    chosenFileName = ''
-    tree = 0
-
-    def __init__(self):
-        super(MainWindow, self).__init__()
-        self.initUI()
-
-    def initUI(self):
-        self.textEdit = QtGui.QTextEdit()
-        self.setCentralWidget(self.textEdit)
-        self.statusBar()
-
-        #menu bar
-        self.openFile = QtGui.QAction(QtGui.QIcon(''), 'Otworz', self)
-        self.openFile.setShortcut('Ctrl+O')
-        self.openFile.setStatusTip('Otworz plik')
-        self.openFile.triggered.connect(self.showOpenFileDialog)
-
-        self.convertFile = QtGui.QAction(QtGui.QIcon(''), 'Konwertuj', self)
-        self.convertFile.setShortcut('Ctrl+W')
-        self.convertFile.setStatusTip('Przekonwertuj plik na inny format')
-        self.convertFile.triggered.connect(self.showConvertWindow)
-
-        self.drawAsciiTree = QtGui.QAction(QtGui.QIcon(''), 'Tekstowo - ASCII', self)
-        self.drawAsciiTree.setShortcut('Ctrl+T')
-        self.drawAsciiTree.setStatusTip('Rysuj drzewo tekstowo - ASCII')
-        self.drawAsciiTree.triggered.connect(self.showAsciiTreeWindow)
-
-        self.matplotlibDrawTree = QtGui.QAction(QtGui.QIcon(''), 'Graficznie - matplotlib', self)
-        self.matplotlibDrawTree.setShortcut('Ctrl+M')
-        self.matplotlibDrawTree.setStatusTip('Rysuj ukorzenione drzewo - matplotlib')
-        self.matplotlibDrawTree.triggered.connect(self.showMatplotlibTreeWindow)
-
-        self.graphvizDrawTree = QtGui.QAction(QtGui.QIcon(''), 'Graficznie - graphviz', self)
-        self.graphvizDrawTree.setShortcut('Ctrl+G')
-        self.graphvizDrawTree.setStatusTip('Rysuj nieukorzenione drzewo - graphviz')
-        self.graphvizDrawTree.triggered.connect(self.showGraphvizRootedTreeWindow)
-
-        self.pathNodesTree = QtGui.QAction(QtGui.QIcon(''), 'Znajdz sciezke', self)
-        self.pathNodesTree.setShortcut('Ctrl+P')
-        self.pathNodesTree.setStatusTip('Znajduje sciezke miedzy dwoma wezlami w drzewie')
-        self.pathNodesTree.triggered.connect(self.showChooseNodesWindow)
-
-        self.distanceTree = QtGui.QAction(QtGui.QIcon(''), 'Wyznacz odleglosci', self)
-        self.distanceTree.setShortcut('Ctrl+D')
-        self.distanceTree.setStatusTip('Oblicza rozne metryki odleglosci miedzy dwoma drzewami')
-        self.distanceTree.triggered.connect(self.showDistancesWindow)
-
-        self.consensusTree = QtGui.QAction(QtGui.QIcon(''), 'Wyznacz drzewo konsensusu', self)
-        self.consensusTree.setShortcut('Ctrl+S')
-        self.consensusTree.setStatusTip('Wyznacza drzewa konsensusu za pomoca Dendropy i Bio.Nexus')
-        self.consensusTree.triggered.connect(self.showConsensusWindow)
-
-        self.treeInfo = QtGui.QAction(QtGui.QIcon(''), 'Informacje', self)
-        self.treeInfo.setShortcut('Ctrl+I')
-        self.treeInfo.setStatusTip('Pokaz podstawowe informacje o wczytanym drzewie')
-        self.treeInfo.triggered.connect(self.showTreeInfoWindow)
-
-        self.menubar = self.menuBar()
-        self.fileMenu = self.menubar.addMenu('&Plik')
-        self.fileMenu.addAction(self.openFile)
-        self.fileMenu.addAction(self.convertFile)
-        self.drawMenu = self.menubar.addMenu('&Rysuj')
-        self.drawMenu.addAction(self.drawAsciiTree)
-        self.drawMenu.addAction(self.matplotlibDrawTree)
-        self.drawMenu.addAction(self.graphvizDrawTree)
-        self.toolMenu = self.menubar.addMenu('&Narzedzia')
-        self.toolMenu.addAction(self.pathNodesTree)
-        self.toolMenu.addAction(self.distanceTree)
-        self.toolMenu.addAction(self.consensusTree)
-        self.otherMenu = self.menubar.addMenu('&Inne')
-        self.otherMenu.addAction(self.treeInfo)
-
-
-        self.setGeometry(200, 200, 550, 400)
-        self.setWindowTitle('Drzewa filogenetyczne')
-        self.show()
-
-    ##TODO poprawic to
-    def showConvertWindow(self):
-        self.convWin = ConvertWindow()
-        self.convWin.show()
-
-
-    def showAsciiTreeWindow(self):
-        if self.chosenFileName == '':
-            self.showOpenFileDialog()
-
-        if self.tree != 0:
-            self.asciiWin = AsciiTreeWindow(self.tree)
-            self.asciiWin.show()
-
-
-    def showMatplotlibTreeWindow(self):
-        if self.chosenFileName == '':
-            self.showOpenFileDialog()
-
-        if self.tree != 0:
-            self.tree.root.color = '#808080'
-            Phylo.draw(self.tree, branch_labels = lambda c: c.branch_length)
-
-    ## showGraphvizUnRootedTreeWindow
-    def showGraphvizRootedTreeWindow(self):
-        if self.chosenFileName == '':
-            self.showOpenFileDialog()
-
-        if self.tree != 0:
-            #self.tree.rooted = True
-            self.tree.root.color = '#808080'
-            Phylo.draw_graphviz(self.tree, node_size = 2500)
-            pylab.show()
-
-
-    def showTreeInfoWindow(self):
-        if self.chosenFileName == '':
-            self.showOpenFileDialog()
-
-        if self.tree != 0:
-            self.infoWin = InfoWindow(self.tree)
-            self.infoWin.show()
-
-
-    def showChooseNodesWindow(self):
-        if self.chosenFileName == '':
-            self.showOpenFileDialog()
-
-        if self.tree != 0:
-            self.nodesWin = NodesWindow(self.tree)
-            self.nodesWin.show()
-
-
-    def showDistancesWindow(self):
-        self.distancesWin = DistancesWindow()
-        self.distancesWin.show()
-
-
-    def showConsensusWindow(self):
-        self.consWin = ConsensusWindow()
-        self.consWin.show()
-
-
-    def showOpenFileDialog(self):
-
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik', './Trees')
-
-        if fname != '':
-            self.chosenFileName = str(fname)
-
-            f = open(str(fname), 'r')
-
-            with f:
-                data = f.read()
-                self.textEdit.setText(data)
-
-            self.fileExtension = (os.path.splitext(str(fname))[1])[1:]
-
-            self.tree = Phylo.read(str(fname), self.fileExtension)
 
 def main():
     app = QtGui.QApplication(sys.argv)
