@@ -14,7 +14,7 @@ from PyQt4 import QtGui
 from Bio import Phylo
 
 # zewnetrzne pliki
-import ConvertClass
+
 import ConsensusWindow as cs
 import MainClass as ms
 
@@ -36,7 +36,6 @@ class InfoWindow(QtGui.QMainWindow):
         self.initUI()
 
     def showAscii(self):
-        # print tree
         self.tmpf = open('/tmp/ascii.txt', 'w')
         Phylo.draw_ascii(self.tree, self.tmpf)
 
@@ -49,8 +48,6 @@ class InfoWindow(QtGui.QMainWindow):
         self.getMinMaxLengths()
         self.numberOfTermianls = self.tree.count_terminals()
         self.numberOfNonterminals = len(self.tree.get_nonterminals())
-
-
 
         self.isBifurcating = ''
         if self.tree.is_bifurcating():
