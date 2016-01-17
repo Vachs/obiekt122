@@ -224,7 +224,7 @@ class NextWindow(QtGui.QWidget):
             print "Nie wybrano punktow"
 
             # WYSWIETLA INFORMACJE
-            img = pylab.imread('wally.png', 'rb')
+            img = pylab.imread('img/wally.png', 'rb')
             pylab.imshow(img)
             pylab.plot(0, 0)
 
