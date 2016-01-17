@@ -36,10 +36,23 @@ class ConsensusWindow(QtGui.QWidget):
         self.path2Btn.clicked.connect(self.chooseFile2)
 
         self.consDenBtn = QtGui.QPushButton('Wygeneruj drzewo konsensusu')
-        self.consDenBtn.clicked.connect(self.drawConsensusTreeDendropy)
+        self.consDenBtn.clicked.connect(self.drawConsensusTreeBioNexus)
 
         self.consNexBtn = QtGui.QPushButton('Pokaz informacje o tym drzewie')
         self.consNexBtn.clicked.connect(self.showConsensusTreeBioNexus)
+
+        self.otherRF = QtGui.QPushButton('Oblicz odleglosci')
+        self.otherRF.clicked.connect(self.showOtherRF)
+
+        self.lay1 = QtGui.QLabel('Metryka Robinsona-Fouldsa: ')
+        self.lay2 = QtGui.QLabel('Odleglosc euklidesowa: ')
+        #self.lay2 = QtGui.QLabel('Roznica symetryczna')
+        #self.lay3 = QtGui.QLabel('Falszywe pozytywy i negatywy')
+
+        self.res1 = QtGui.QLabel('')
+        self.res2 = QtGui.QLabel('')
+        #self.res3 = QtGui.QPushButton('')
+        #self.res4 = QtGui.QPushButton('')
 
         # obraz
         self.grid = QtGui.QGridLayout(self)
@@ -54,7 +67,12 @@ class ConsensusWindow(QtGui.QWidget):
 
         self.grid.addWidget(self.consDenBtn, 5, 0)
         self.grid.addWidget(self.consNexBtn, 6, 0)
+        self.grid.addWidget(self.otherRF, 7, 0)
 
+        self.grid.addWidget(self.lay1, 1, 1)
+        self.grid.addWidget(self.lay2, 2, 1)
+        self.grid.addWidget(self.res1, 1, 2)
+        self.grid.addWidget(self.res2, 2, 2)
 
         self.setLayout(self.grid)
         self.setGeometry(200, 200, 200, 50)
@@ -62,7 +80,7 @@ class ConsensusWindow(QtGui.QWidget):
         self.show()
 
     def showOpenFileDialog(self):
-        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik', './Trees')
+        fname = QtGui.QFileDialog.getOpenFileName(self, 'Otworz plik z drzewem')
         return str(fname)
 
     def chooseFile1(self):
@@ -78,34 +96,10 @@ class ConsensusWindow(QtGui.QWidget):
             self.infoWin = InfoWindow(self.tree)
             self.infoWin.show()
 
-
-    def drawConsensusTreeDendropy(self):
+    def showOtherRF(self):
         if self.path1 != '' and self.path2 != '':
-            # get files extensions
-            self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
-            self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
+            self.calculateDistance()
 
-            # open tree files
-            self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1)
-            self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2)
-
-            # prepare tree list
-            self.trees = dendropy.TreeList()
-            self.trees.append(self.tree1)
-            self.trees.append(self.tree2)
-
-            # generate consensus tree
-            self.consensus_tree = self.trees.consensus(min_freq=0.2)
-
-            # draw tree
-            self.handle = StringIO(self.consensus_tree._as_newick_string())
-            # POPRAWIONY BLAD Z KONWERSJA DO BUFORA
-
-            # self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
-            self.tree = Phylo.read(self.handle, 'newick')
-            self.OpenInfoWindow()
-            self.tree.root.color = '#808080'
-            Phylo.draw(self.tree)
 
 
     def showConsensusTreeBioNexus(self):
@@ -115,67 +109,98 @@ class ConsensusWindow(QtGui.QWidget):
             self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
 
             # open tree files
-            self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1)
-            self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2)
+            self.trees = []
 
-            # prepare tree list
-            self.trees = dendropy.TreeList()
+            # first tree
+            self.f = open(self.path1, 'r')
+            self.tree1 = Trees.Tree(self.f.read())
             self.trees.append(self.tree1)
+            self.f.close()
+
+            # second tree
+            self.f = open(self.path2, 'r')
+            self.tree2 = Trees.Tree(self.f.read())
             self.trees.append(self.tree2)
+            self.f.close()
 
             # generate consensus tree
-            self.consensus_tree = self.trees.consensus(min_freq=0.2)
+            self.consensus_tree = Trees.consensus(self.trees)
 
             # draw tree
-            self.handle = StringIO(self.consensus_tree._as_newick_string())
-            # POPRAWIONY BLAD Z KONWERSJA DO BUFORA
-
+            self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
             self.tree = Phylo.read(self.handle, 'newick')
-            self.OpenInfoWindow()
             #self.tree.root.color = '#808080'
+            self.OpenInfoWindow()
             #Phylo.draw(self.tree)
 
-    # def drawConsensusTreeBioNexus(self):
-    #     if self.path1 != '' and self.path2 != '':
-    #         # get files extensions
-    #         self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
-    #         self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
-    #
-    #         # open tree files
-    #         self.trees = []
-    #
-    #         # first tree
-    #         self.f = open(self.path1, 'r')
-    #         self.tree1 = Trees.Tree(self.f.read())
-    #         self.trees.append(self.tree1)
-    #         self.f.close()
-    #
-    #         # second tree
-    #         self.f = open(self.path2, 'r')
-    #         self.tree2 = Trees.Tree(self.f.read())
-    #         self.trees.append(self.tree2)
-    #         self.f.close()
-    #
-    #         # generate consensus tree
-    #         self.consensus_tree = Trees.consensus(self.trees)
-    #
-    #         # draw tree
-    #         self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
-    #         self.tree = Phylo.read(self.handle, 'newick')
-    #         self.tree.root.color = '#808080'
-    #         # phy = Phylogeny.from_tree(self.tree)
-    #         # phy.root.color = "blue"
-    #
-    #         Phylo.draw(self.tree)
-    #         # pylab.show()
-    #         # pylab.imsave('pyplot.png')
-    #         # pylab.imsave('pyplot.png', Phylo.draw_graphviz(self.tree))
-    #         # pylab.close()
-    #         # Phylo.write(self.tree, 'lol', 'png' )
-    #         # ax = pylab.gca()
-    #         # ax.text(1, 4, "Hello World")
-    #         # pylab.show()
-    #         # pylab.savefig('phylo-dot.png')
+    def drawConsensusTreeBioNexus(self):
+        if self.path1 != '' and self.path2 != '':
+            #self.calculateDistance()
+            # get files extensions
+            self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
+            self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
+
+            # open tree files
+            self.trees = []
+
+            # first tree
+            self.f = open(self.path1, 'r')
+            self.tree1 = Trees.Tree(self.f.read())
+            self.trees.append(self.tree1)
+            self.f.close()
+
+            # second tree
+            self.f = open(self.path2, 'r')
+            self.tree2 = Trees.Tree(self.f.read())
+            self.trees.append(self.tree2)
+            self.f.close()
+
+            # generate consensus tree
+            self.consensus_tree = Trees.consensus(self.trees)
+
+            # draw tree
+            self.handle = StringIO(self.consensus_tree.to_string(plain_newick=True))
+            self.tree = Phylo.read(self.handle, 'newick')
+            self.tree.root.color = '#808080'
+            #self.OpenInfoWindow()
+            Phylo.draw(self.tree)
+
+    def calculateDistance(self):
+        if self.path1 != '' and self.path2 != '':
+            # get files extensions
+
+            self.fileExtension1 = (os.path.splitext(self.path1)[1])[1:]
+            self.fileExtension2 = (os.path.splitext(self.path2)[1])[1:]
+
+            # open tree files
+            tns = dendropy.TaxonNamespace()
+            self.tree1 = dendropy.Tree.get_from_path(self.path1, self.fileExtension1, taxon_namespace=tns)
+            self.tree2 = dendropy.Tree.get_from_path(self.path2, self.fileExtension2, taxon_namespace=tns)
+
+            self.tree1.encode_bipartitions()
+            self.tree2.encode_bipartitions()
+
+            print(treecompare.false_positives_and_negatives(self.tree1, self.tree2))
+
+            # self.tree1 = dendropy.Tree.get_from_string('((A, B), (C, D))', 'newick')
+            # self.tree2 = dendropy.Tree.get_from_string('((A, B), (C, D))', 'newick')
+
+            # self.tree1.encode_bipartitions()
+            # self.tree2.encode_bipartitions()
+
+
+            # oblicz dystans
+            # self.symDist = self.tree1.symmetric_difference(self.tree2)
+            self.symDist = treecompare.symmetric_difference(self.tree1, self.tree2)
+            self.fpnDist = treecompare.false_positives_and_negatives(self.tree1, self.tree2)
+            self.eucDist = treecompare.euclidean_distance(self.tree1, self.tree2)
+            self.rfDist = treecompare.robinson_foulds_distance(self.tree1, self.tree2)
+
+            # pokaz wyniki
+            self.res1.setText(str(self.eucDist)) #eucDist
+            self.res2.setText(str(self.rfDist))  #rfDist
+            #self.lay3.setText(str(self.symDist)) #symDist
+            #self.lay4.setText(str(self.fpnDist)) #fpnDist
 
     # ROOTuje drzewo
     def makeRootUnroot(self, mod):
@@ -232,6 +257,7 @@ class NextWindow(QtGui.QWidget):
     def initUI(self):
         self.showOpenFileDialog()
 
+        #Trees.Tree.display(self.tree)
         # WYSZUIKWANIE DROGI PO KRAWEDZIACH
         # labels
         self.node1Label = QtGui.QLabel('Pierwszy wezel')
@@ -331,7 +357,12 @@ class NextWindow(QtGui.QWidget):
         if fname != '':
             self.chosenFileName = str(fname)
             f = open(str(fname), 'r')
-
+            self.tree1 = Trees.Tree(f.read())
+            self.moredata = Trees.Tree.display(self.tree1)
+            print self.moredata
+            self.tmpf = open('more.txt', 'w')
+            self.tmpf.write(str(self.moredata))
+            self.tmpf.close()
             # with f:
             # path1 = f.read()
             # self.pathInfo.setText(path1)
@@ -430,6 +461,7 @@ class NextWindow(QtGui.QWidget):
             # SHOWTIME
             pylab.show()
 
+# WCIELIC TO DO INFORMACJI
 
 class DistancesWindow(QtGui.QWidget):
     def __init__(self):
@@ -549,6 +581,7 @@ class InfoWindow(QtGui.QMainWindow):
         super(InfoWindow, self).__init__()
         self.tree = tree
         self.textt = 'Information about tree' + "\n" + str(tree)
+        #self.tree.display()
         self.initUI()
 
     def showAscii(self):
@@ -565,6 +598,8 @@ class InfoWindow(QtGui.QMainWindow):
         self.getMinMaxLengths()
         self.numberOfTermianls = self.tree.count_terminals()
         self.numberOfNonterminals = len(self.tree.get_nonterminals())
+
+
 
         self.isBifurcating = ''
         if self.tree.is_bifurcating():
