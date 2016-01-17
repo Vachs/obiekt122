@@ -1,34 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="ec3754d4-97ea-40bf-bfe6-7027c0d6e8dc" name="Default" comment="Dziala DENDROPY4!!">
-      <change type="DELETED" beforePath="$PROJECT_DIR$/ConvertClass.py" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/S1.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/S2.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/ascii.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/dist1.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/dist11.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/dist2.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/dist2.phyloxml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/kolejny.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/lol" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/more.txt" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/newstand.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/phylo-dot.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/pyplot.png" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/root.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/t2.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/t2.phyloxml" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/t2_root_at_midpoint.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/trash" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/ur1.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/ur2.newick" afterPath="" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/wally.png" afterPath="" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ConsensusWindow.py" afterPath="$PROJECT_DIR$/ConsensusWindow.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/InfoWindow.py" afterPath="$PROJECT_DIR$/InfoWindow.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MainClass.py" afterPath="$PROJECT_DIR$/MainClass.py" />
-    </list>
+    <list default="true" id="ec3754d4-97ea-40bf-bfe6-7027c0d6e8dc" name="Default" comment="Dziala DENDROPY4!!" />
     <ignored path="obiekt122.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
